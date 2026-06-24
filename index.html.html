@@ -1,0 +1,1449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🌸 Miso Garden — Cozy Garden Game</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Bubblegum+Sans&display=swap');
+  :root {
+    --cream: #FFF5F0;
+    --pink-light: #FFD6E7;
+    --pink: #FF9EC4;
+    --pink-deep: #E8729A;
+    --peach: #FFB8A0;
+    --mint: #B8F0DC;
+    --mint-deep: #5CC8A0;
+    --sky: #C8E8FF;
+    --sky-deep: #78B8E8;
+    --lavender: #DDD0FF;
+    --yellow: #FFE878;
+    --amber: #FFB848;
+    --green-light: #C8F0C0;
+    --green: #78CC78;
+    --green-deep: #48A048;
+    --brown: #C8886A;
+    --brown-light: #F0C8A8;
+    --white: #FFFCFA;
+    --text: #5A3848;
+    --text-light: #A87890;
+    --shadow: rgba(180,100,130,0.15);
+    --panel-bg: rgba(255,245,250,0.95);
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--cream);
+    min-height: 100vh;
+    overflow-x: hidden;
+    color: var(--text);
+    user-select: none;
+  }
+
+  /* ======= SKY BACKGROUND ======= */
+  #sky-bg {
+    position: fixed; top:0; left:0; width:100%; height:100%;
+    z-index: 0;
+    background: linear-gradient(180deg, #D8EEFF 0%, #FFE0F0 55%, #FFEEDD 100%);
+    overflow: hidden;
+  }
+
+  .cloud {
+    position: absolute;
+    border-radius: 50px;
+    background: rgba(255,255,255,0.85);
+    animation: float-cloud linear infinite;
+  }
+  @keyframes float-cloud {
+    from { transform: translateX(-200px); }
+    to   { transform: translateX(110vw); }
+  }
+
+  .sparkle {
+    position: absolute;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #FFE8F8;
+    animation: twinkle 2s ease-in-out infinite;
+  }
+  @keyframes twinkle {
+    0%,100% { opacity:0.2; transform:scale(0.8); }
+    50% { opacity:1; transform:scale(1.3); }
+  }
+
+  /* ======= LAYOUT ======= */
+  #game-root {
+    position: relative; z-index:1;
+    max-width: 520px;
+    margin: 0 auto;
+    padding: 0 12px 120px;
+    min-height: 100vh;
+  }
+
+  /* ======= HEADER ======= */
+  #header {
+    text-align: center;
+    padding: 18px 0 10px;
+  }
+  #header h1 {
+    font-family: 'Bubblegum Sans', cursive;
+    font-size: 2rem;
+    color: var(--pink-deep);
+    text-shadow: 0 2px 0 rgba(255,255,255,0.8), 0 4px 8px rgba(232,114,154,0.25);
+    letter-spacing: 1px;
+  }
+  #header .subtitle {
+    font-size: 0.78rem;
+    color: var(--text-light);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+
+  /* ======= STATS BAR ======= */
+  #stats-bar {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin: 8px 0 14px;
+  }
+  .stat-chip {
+    background: var(--white);
+    border: 2px solid var(--pink-light);
+    border-radius: 20px;
+    padding: 5px 14px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--text);
+    display: flex; align-items:center; gap:5px;
+    box-shadow: 0 2px 6px var(--shadow);
+  }
+  .stat-chip .icon { font-size: 1rem; }
+
+  /* ======= SEASON BANNER ======= */
+  #season-banner {
+    text-align: center;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    padding: 5px 18px;
+    border-radius: 20px;
+    margin: 0 auto 14px;
+    display: inline-block;
+    width: fit-content;
+    position: relative;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  .season-spring { background: var(--pink-light); color: var(--pink-deep); }
+  .season-summer { background: var(--mint); color: var(--green-deep); }
+  .season-autumn { background: #FFE0C0; color: #D86820; }
+  .season-winter { background: var(--sky); color: var(--sky-deep); }
+
+  /* ======= CHARACTER ======= */
+  #character-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 10px;
+    position: relative;
+  }
+  #char-svg { width:120px; height:130px; cursor:pointer; transition:transform 0.2s; }
+  #char-svg:hover { transform: scale(1.05) translateY(-3px); }
+  #char-name {
+    font-family: 'Bubblegum Sans', cursive;
+    font-size: 1.1rem;
+    color: var(--pink-deep);
+    margin-top: 4px;
+  }
+  #speech-bubble {
+    background: var(--white);
+    border: 2px solid var(--pink-light);
+    border-radius: 16px;
+    padding: 8px 14px;
+    font-size: 0.8rem;
+    color: var(--text);
+    max-width: 240px;
+    text-align: center;
+    box-shadow: 0 3px 10px var(--shadow);
+    margin-top: 6px;
+    position: relative;
+    min-height: 36px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 600;
+    line-height: 1.4;
+  }
+  #speech-bubble::before {
+    content: '';
+    position: absolute; top:-10px; left:50%; transform:translateX(-50%);
+    width:0; height:0;
+    border-left:8px solid transparent;
+    border-right:8px solid transparent;
+    border-bottom:10px solid var(--pink-light);
+  }
+
+  /* ======= GARDEN GRID ======= */
+  #garden-section {
+    background: var(--panel-bg);
+    border: 2px solid var(--pink-light);
+    border-radius: 24px;
+    padding: 16px;
+    margin-bottom: 14px;
+    box-shadow: 0 4px 16px var(--shadow);
+  }
+  #garden-title {
+    font-family: 'Bubblegum Sans', cursive;
+    font-size: 1rem;
+    color: var(--text-light);
+    margin-bottom: 12px;
+    display: flex; align-items:center; gap:6px;
+  }
+  #garden-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+  }
+  .plot {
+    background: #D4B896;
+    border-radius: 16px;
+    border: 3px solid #B8906A;
+    aspect-ratio: 1;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    cursor: pointer;
+    transition: transform 0.18s, box-shadow 0.18s;
+    position: relative;
+    overflow: hidden;
+  }
+  .plot:hover { transform:scale(1.06); box-shadow: 0 6px 18px rgba(180,100,80,0.25); }
+  .plot:active { transform:scale(0.97); }
+  .plot.locked {
+    background: #E0D0C0;
+    border-color: #C8B8A8;
+    cursor: default;
+    opacity: 0.55;
+  }
+  .plot.locked:hover { transform:none; box-shadow:none; }
+  .plot-soil-base {
+    position: absolute; bottom:0; left:0; width:100%; height:55%;
+    background: linear-gradient(180deg, #C8956A 0%, #B07850 100%);
+    border-radius: 0 0 12px 12px;
+  }
+  .plot-grass-top {
+    position: absolute; bottom:45%; left:0; width:100%; height:14%;
+    background: #78B848;
+  }
+  .plot-state-icon {
+    font-size: 1.8rem;
+    position: relative; z-index:2;
+    transition: transform 0.3s;
+    line-height: 1;
+  }
+  .plot.watered .plot-soil-base { background: linear-gradient(180deg, #8A6040 0%, #6A4828 100%); }
+  .plot.ready { animation: pulse-ready 1.5s ease-in-out infinite; }
+  @keyframes pulse-ready {
+    0%,100% { box-shadow: 0 0 0 0 rgba(120,200,120,0.5); }
+    50% { box-shadow: 0 0 0 8px rgba(120,200,120,0); }
+  }
+  .plot-label {
+    font-size: 0.48rem;
+    font-weight: 800;
+    color: var(--white);
+    position: absolute; bottom:5px;
+    text-align: center; width: 100%;
+    z-index:3;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+  }
+  .watered-drop {
+    position:absolute; top:6px; right:6px;
+    font-size:0.75rem; z-index:3;
+  }
+  .lock-icon { font-size:1.4rem; color:#C8B8A8; }
+
+  /* ======= TOOL BAR ======= */
+  #toolbar {
+    background: var(--panel-bg);
+    border: 2px solid var(--pink-light);
+    border-radius: 24px;
+    padding: 12px 16px;
+    margin-bottom: 14px;
+    box-shadow: 0 4px 16px var(--shadow);
+  }
+  #toolbar-title {
+    font-family: 'Bubblegum Sans', cursive;
+    font-size: 0.9rem;
+    color: var(--text-light);
+    margin-bottom: 10px;
+  }
+  #tools-row {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .tool-btn {
+    background: var(--white);
+    border: 2.5px solid var(--pink-light);
+    border-radius: 16px;
+    padding: 8px 14px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 800;
+    color: var(--text);
+    cursor: pointer;
+    transition: all 0.18s;
+    display: flex; align-items:center; gap:5px;
+    box-shadow: 0 3px 8px var(--shadow);
+  }
+  .tool-btn:hover { transform:translateY(-2px); box-shadow:0 6px 14px var(--shadow); }
+  .tool-btn:active { transform:scale(0.96); }
+  .tool-btn.active {
+    background: var(--pink);
+    border-color: var(--pink-deep);
+    color: white;
+  }
+  .tool-icon { font-size: 1.1rem; }
+
+  /* ======= SEED SHOP ======= */
+  #shop-section {
+    background: var(--panel-bg);
+    border: 2px solid var(--lavender);
+    border-radius: 24px;
+    padding: 14px 16px;
+    margin-bottom: 14px;
+    box-shadow: 0 4px 16px rgba(160,130,200,0.15);
+  }
+  #shop-title {
+    font-family: 'Bubblegum Sans', cursive;
+    font-size: 1rem;
+    color: #8870C8;
+    margin-bottom: 10px;
+    display:flex; align-items:center; gap:6px;
+  }
+  #seeds-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+  .seed-card {
+    background: var(--white);
+    border: 2px solid var(--lavender);
+    border-radius: 16px;
+    padding: 10px 12px;
+    cursor: pointer;
+    transition: all 0.18s;
+    display: flex; align-items:center; gap:10px;
+    box-shadow: 0 2px 8px rgba(160,130,200,0.1);
+  }
+  .seed-card:hover { transform:translateY(-2px); border-color:#B8A0F0; box-shadow:0 5px 14px rgba(160,130,200,0.2); }
+  .seed-card:active { transform:scale(0.97); }
+  .seed-card.selected-seed { background: var(--lavender); border-color: #9070E0; }
+  .seed-emoji { font-size:1.6rem; }
+  .seed-info { flex:1; }
+  .seed-name { font-size:0.78rem; font-weight:800; color:var(--text); }
+  .seed-cost { font-size:0.7rem; color:#8870C8; font-weight:700; }
+  .seed-time { font-size:0.65rem; color:var(--text-light); }
+
+  /* ======= FRIENDS ======= */
+  #friends-section {
+    background: var(--panel-bg);
+    border: 2px solid var(--mint);
+    border-radius: 24px;
+    padding: 14px 16px;
+    margin-bottom: 14px;
+    box-shadow: 0 4px 16px rgba(90,180,140,0.1);
+  }
+  #friends-title {
+    font-family: 'Bubblegum Sans', cursive;
+    font-size: 1rem;
+    color: var(--mint-deep);
+    margin-bottom: 10px;
+    display:flex; align-items:center; gap:6px;
+  }
+  #friends-row {
+    display:flex; gap:10px; flex-wrap:wrap;
+  }
+  .friend-card {
+    background: var(--white);
+    border: 2px solid var(--mint);
+    border-radius: 18px;
+    padding: 10px 12px;
+    display:flex; flex-direction:column; align-items:center; gap:4px;
+    flex:1; min-width:80px;
+    transition: all 0.18s;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(90,180,140,0.1);
+  }
+  .friend-card:hover { transform:translateY(-2px); box-shadow:0 5px 14px rgba(90,180,140,0.2); }
+  .friend-svg { width:52px; height:52px; }
+  .friend-name { font-size:0.7rem; font-weight:800; color:var(--text); text-align:center; }
+  .friend-status { font-size:0.6rem; color:var(--mint-deep); text-align:center; }
+  .friend-hearts { font-size:0.75rem; }
+
+  /* ======= DECORATIONS ======= */
+  #decor-section {
+    background: var(--panel-bg);
+    border: 2px solid var(--yellow);
+    border-radius: 24px;
+    padding: 14px 16px;
+    margin-bottom: 14px;
+    box-shadow: 0 4px 16px rgba(200,170,50,0.1);
+  }
+  #decor-title {
+    font-family: 'Bubblegum Sans', cursive;
+    font-size: 1rem;
+    color: #B88020;
+    margin-bottom: 10px;
+    display:flex; align-items:center; gap:6px;
+  }
+  #decor-grid {
+    display:grid; grid-template-columns:repeat(3,1fr); gap:8px;
+  }
+  .decor-item {
+    background: var(--white);
+    border: 2px solid var(--yellow);
+    border-radius: 14px;
+    padding: 8px;
+    text-align:center;
+    cursor:pointer;
+    transition:all 0.18s;
+    box-shadow: 0 2px 6px rgba(200,170,50,0.1);
+  }
+  .decor-item:hover { transform:scale(1.04); border-color:var(--amber); }
+  .decor-item.owned { background: #FFF8E0; border-color: var(--amber); }
+  .decor-emoji { font-size:1.5rem; }
+  .decor-name { font-size:0.62rem; font-weight:700; color:var(--text); margin-top:3px; }
+  .decor-cost { font-size:0.58rem; color:#B88020; }
+
+  /* ======= NOTIFICATION TOAST ======= */
+  #toast {
+    position: fixed;
+    top: 80px; left:50%; transform:translateX(-50%) translateY(-20px);
+    background: var(--pink-deep);
+    color: white;
+    border-radius: 24px;
+    padding: 10px 22px;
+    font-size: 0.82rem; font-weight:800;
+    box-shadow: 0 6px 20px rgba(200,80,120,0.35);
+    z-index: 999;
+    opacity:0; pointer-events:none;
+    transition: all 0.3s;
+    text-align:center;
+    max-width: 280px;
+  }
+  #toast.show {
+    opacity:1; transform:translateX(-50%) translateY(0);
+  }
+
+  /* ======= HARVEST POPUP ======= */
+  #harvest-popup {
+    position: fixed;
+    inset:0; z-index:900;
+    background: rgba(90,30,60,0.5);
+    display:none; align-items:center; justify-content:center;
+  }
+  #harvest-popup.show { display:flex; }
+  #harvest-box {
+    background: var(--white);
+    border: 3px solid var(--pink);
+    border-radius: 28px;
+    padding: 30px 36px;
+    text-align:center;
+    box-shadow: 0 12px 40px rgba(200,80,120,0.3);
+    animation: pop-in 0.3s cubic-bezier(0.34,1.56,0.64,1);
+    max-width: 300px;
+  }
+  @keyframes pop-in {
+    from { transform:scale(0.5); opacity:0; }
+    to { transform:scale(1); opacity:1; }
+  }
+  #harvest-box .big-emoji { font-size:4rem; display:block; margin-bottom:8px; }
+  #harvest-box h2 {
+    font-family:'Bubblegum Sans', cursive;
+    font-size:1.5rem; color:var(--pink-deep);
+    margin-bottom:6px;
+  }
+  #harvest-box p { font-size:0.85rem; color:var(--text); margin-bottom:16px; font-weight:600; }
+  #harvest-close-btn {
+    background: var(--pink);
+    color:white;
+    border:none; border-radius:20px;
+    padding:10px 28px;
+    font-family:'Nunito',sans-serif;
+    font-size:0.9rem; font-weight:800;
+    cursor:pointer;
+    transition:all 0.18s;
+    box-shadow: 0 4px 12px rgba(200,80,120,0.3);
+  }
+  #harvest-close-btn:hover { background:var(--pink-deep); transform:translateY(-2px); }
+
+  /* ======= BOTTOM NAV ======= */
+  #bottom-nav {
+    position:fixed; bottom:0; left:0; width:100%;
+    z-index:100;
+    background: var(--white);
+    border-top: 2px solid var(--pink-light);
+    display:flex; justify-content:center; gap:0;
+    box-shadow: 0 -4px 16px rgba(200,80,120,0.1);
+    padding: 0;
+  }
+  .nav-btn {
+    flex:1; max-width:90px;
+    padding: 10px 6px 12px;
+    background:none; border:none;
+    cursor:pointer;
+    display:flex; flex-direction:column; align-items:center; gap:2px;
+    font-family:'Nunito',sans-serif;
+    font-size:0.58rem; font-weight:800;
+    color:var(--text-light);
+    transition:color 0.18s;
+    letter-spacing:0.5px;
+    text-transform:uppercase;
+  }
+  .nav-btn .nav-icon { font-size:1.4rem; transition:transform 0.18s; }
+  .nav-btn.active { color:var(--pink-deep); }
+  .nav-btn.active .nav-icon { transform:scale(1.2); }
+  .nav-btn:hover .nav-icon { transform:scale(1.15); }
+
+  /* ======= CONFETTI ======= */
+  .confetti-piece {
+    position:fixed; top:-10px;
+    border-radius: 3px;
+    animation: fall linear forwards;
+    pointer-events:none; z-index:9999;
+  }
+  @keyframes fall {
+    to { transform:translateY(110vh) rotate(720deg); opacity:0; }
+  }
+
+  /* ======= FLYING COIN ======= */
+  .fly-coin {
+    position:fixed;
+    font-size:1.2rem;
+    pointer-events:none;
+    z-index:9998;
+    animation: fly-up 1.2s ease-out forwards;
+  }
+  @keyframes fly-up {
+    to { transform:translateY(-80px) scale(1.5); opacity:0; }
+  }
+
+  /* ======= PAGE SECTIONS ======= */
+  .page { display:none; }
+  .page.active { display:block; }
+
+  /* ======= VISITOR EVENT ======= */
+  #visitor-banner {
+    background: linear-gradient(135deg, var(--mint) 0%, var(--sky) 100%);
+    border: 2px solid var(--mint-deep);
+    border-radius: 20px;
+    padding: 12px 16px;
+    margin-bottom: 14px;
+    display:none; align-items:center; gap:12px;
+    box-shadow: 0 4px 14px rgba(90,180,140,0.2);
+    animation: slide-in 0.4s ease;
+  }
+  #visitor-banner.show { display:flex; }
+  @keyframes slide-in {
+    from { transform:translateX(-20px); opacity:0; }
+    to { transform:translateX(0); opacity:1; }
+  }
+  #visitor-banner .visitor-svg { width:52px; height:52px; flex-shrink:0; }
+  #visitor-text { flex:1; }
+  #visitor-text h3 { font-family:'Bubblegum Sans',cursive; font-size:0.9rem; color:var(--green-deep); }
+  #visitor-text p { font-size:0.72rem; color:var(--text); font-weight:600; }
+  #visitor-claim {
+    background:var(--mint-deep); color:white;
+    border:none; border-radius:14px;
+    padding:7px 14px;
+    font-family:'Nunito',sans-serif; font-size:0.72rem; font-weight:800;
+    cursor:pointer; transition:all 0.18s;
+  }
+  #visitor-claim:hover { background:var(--green-deep); transform:scale(1.04); }
+
+  /* ======= PROGRESS BAR ======= */
+  .xp-bar-wrap {
+    height:8px; background:var(--pink-light);
+    border-radius:10px; overflow:hidden; margin:6px 0;
+  }
+  .xp-bar-fill {
+    height:100%; background:linear-gradient(90deg,var(--pink),var(--pink-deep));
+    border-radius:10px; transition:width 0.6s ease;
+  }
+</style>
+</head>
+<body>
+
+<!-- Sky background -->
+<div id="sky-bg" aria-hidden="true"></div>
+
+<!-- Toast -->
+<div id="toast" role="status" aria-live="polite"></div>
+
+<!-- Harvest popup -->
+<div id="harvest-popup" role="dialog" aria-modal="true" aria-labelledby="harvest-title">
+  <div id="harvest-box">
+    <span class="big-emoji" id="harvest-emoji">🌸</span>
+    <h2 id="harvest-title">Harvest!</h2>
+    <p id="harvest-desc">You collected something wonderful!</p>
+    <button id="harvest-close-btn">Keep it! 🎀</button>
+  </div>
+</div>
+
+<!-- Game root -->
+<div id="game-root">
+  <header id="header">
+    <h1>🌸 Miso Garden</h1>
+    <div class="subtitle">Grow · Harvest · Bloom</div>
+  </header>
+
+  <div id="stats-bar" role="complementary" aria-label="Game stats">
+    <div class="stat-chip"><span class="icon">🪙</span><span id="stat-coins">120</span></div>
+    <div class="stat-chip"><span class="icon">⭐</span>Lv <span id="stat-level">1</span></div>
+    <div class="stat-chip"><span class="icon">💧</span><span id="stat-water">5</span></div>
+    <div class="stat-chip"><span class="icon">🌸</span><span id="stat-blooms">0</span></div>
+  </div>
+
+  <div id="season-banner" class="season-spring" aria-label="Current season">✿ Spring ✿</div>
+
+  <!-- Garden Page -->
+  <section id="page-garden" class="page active">
+
+    <!-- Visitor -->
+    <div id="visitor-banner" role="note">
+      <svg class="visitor-svg" viewBox="0 0 52 52" xmlns="http://www.w3.org/2000/svg">
+        <!-- Frog friend chibi -->
+        <ellipse cx="26" cy="42" rx="16" ry="8" fill="#88CC88" opacity="0.4"/>
+        <rect x="10" y="22" width="32" height="26" rx="14" fill="#6EBB6E"/>
+        <circle cx="26" cy="20" r="13" fill="#6EBB6E"/>
+        <circle cx="20" cy="14" r="5" fill="#88DD88"/>
+        <circle cx="32" cy="14" r="5" fill="#88DD88"/>
+        <ellipse cx="26" cy="24" rx="8" ry="5" fill="#B8F8B8"/>
+        <circle cx="21" cy="18" r="2.5" fill="white"/><circle cx="31" cy="18" r="2.5" fill="white"/>
+        <circle cx="21" cy="18" r="1.2" fill="#336633"/><circle cx="31" cy="18" r="1.2" fill="#336633"/>
+        <path d="M23 23 Q26 25 29 23" stroke="#336633" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+        <!-- hat -->
+        <ellipse cx="26" cy="8" rx="14" ry="4" fill="#E84848"/>
+        <rect x="18" y="4" width="16" height="6" rx="3" fill="#E84848"/>
+        <ellipse cx="26" cy="4" rx="5" ry="2" fill="#FF8888"/>
+      </svg>
+      <div id="visitor-text">
+        <h3 id="visitor-name">Ribby dropped by!</h3>
+        <p id="visitor-msg">I brought you some seeds~</p>
+      </div>
+      <button id="visitor-claim">Claim 🎁</button>
+    </div>
+
+    <!-- Character -->
+    <div id="character-area">
+      <svg id="char-svg" viewBox="0 0 120 130" xmlns="http://www.w3.org/2000/svg" aria-label="Your character">
+        <!-- Shadow -->
+        <ellipse cx="60" cy="122" rx="28" ry="6" fill="rgba(180,100,130,0.18)"/>
+        <!-- Body — bunny costume -->
+        <rect x="28" y="68" width="64" height="52" rx="22" fill="#FFB8C8"/>
+        <!-- Tummy -->
+        <ellipse cx="60" cy="88" rx="20" ry="16" fill="#FFE0EC"/>
+        <!-- Arms -->
+        <ellipse cx="22" cy="82" rx="10" ry="8" fill="#FFB8C8" transform="rotate(-15,22,82)"/>
+        <ellipse cx="98" cy="82" rx="10" ry="8" fill="#FFB8C8" transform="rotate(15,98,82)"/>
+        <!-- Legs -->
+        <rect x="36" y="108" width="18" height="18" rx="9" fill="#FF8CB0"/>
+        <rect x="66" y="108" width="18" height="18" rx="9" fill="#FF8CB0"/>
+        <!-- Head -->
+        <circle cx="60" cy="52" r="30" fill="#FFD6E8"/>
+        <!-- Bunny ears -->
+        <ellipse cx="42" cy="22" rx="8" ry="20" fill="#FFB8C8" transform="rotate(-10,42,22)"/>
+        <ellipse cx="42" cy="22" rx="4" ry="14" fill="#FF88B8" transform="rotate(-10,42,22)"/>
+        <ellipse cx="78" cy="22" rx="8" ry="20" fill="#FFB8C8" transform="rotate(10,78,22)"/>
+        <ellipse cx="78" cy="22" rx="4" ry="14" fill="#FF88B8" transform="rotate(10,78,22)"/>
+        <!-- Face -->
+        <circle cx="50" cy="52" r="5" fill="white"/>
+        <circle cx="70" cy="52" r="5" fill="white"/>
+        <circle cx="51" cy="52" r="2.8" fill="#4A2060"/>
+        <circle cx="71" cy="52" r="2.8" fill="#4A2060"/>
+        <!-- Shine -->
+        <circle cx="52" cy="50" r="1.2" fill="white"/>
+        <circle cx="72" cy="50" r="1.2" fill="white"/>
+        <!-- Blush -->
+        <ellipse cx="44" cy="57" rx="6" ry="3.5" fill="#FF9EC4" opacity="0.6"/>
+        <ellipse cx="76" cy="57" rx="6" ry="3.5" fill="#FF9EC4" opacity="0.6"/>
+        <!-- Nose + mouth -->
+        <ellipse cx="60" cy="59" rx="3" ry="2" fill="#FF78A8"/>
+        <path d="M56 63 Q60 66 64 63" stroke="#CC5888" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+        <!-- Whiskers -->
+        <line x1="38" y1="59" x2="54" y2="61" stroke="#CC5888" stroke-width="0.8" opacity="0.5"/>
+        <line x1="38" y1="62" x2="54" y2="62" stroke="#CC5888" stroke-width="0.8" opacity="0.5"/>
+        <line x1="66" y1="61" x2="82" y2="59" stroke="#CC5888" stroke-width="0.8" opacity="0.5"/>
+        <line x1="66" y1="62" x2="82" y2="62" stroke="#CC5888" stroke-width="0.8" opacity="0.5"/>
+        <!-- Tail -->
+        <circle cx="90" cy="110" r="10" fill="white"/>
+      </svg>
+      <div id="char-name">Miso</div>
+      <div id="speech-bubble">Tap a plot to plant seeds! 🌱</div>
+    </div>
+
+    <!-- Garden -->
+    <section id="garden-section" aria-label="Garden plots">
+      <div id="garden-title">🌿 My Garden</div>
+      <div id="garden-grid" role="grid" aria-label="4 by 3 garden grid"></div>
+    </section>
+
+    <!-- Tools -->
+    <div id="toolbar" role="group" aria-label="Garden tools">
+      <div id="toolbar-title">🧰 Tools</div>
+      <div id="tools-row">
+        <button class="tool-btn active" id="tool-plant" data-tool="plant"><span class="tool-icon">🌱</span>Plant</button>
+        <button class="tool-btn" id="tool-water" data-tool="water"><span class="tool-icon">💧</span>Water</button>
+        <button class="tool-btn" id="tool-harvest" data-tool="harvest"><span class="tool-icon">🧺</span>Harvest</button>
+        <button class="tool-btn" id="tool-remove" data-tool="remove"><span class="tool-icon">✂️</span>Remove</button>
+      </div>
+    </div>
+
+    <!-- Seeds -->
+    <div id="shop-section" aria-label="Seed shop">
+      <div id="shop-title">🛒 Seed Shop</div>
+      <div id="seeds-grid"></div>
+    </div>
+
+  </section>
+
+  <!-- Friends Page -->
+  <section id="page-friends" class="page" aria-label="Friends">
+    <div id="friends-section">
+      <div id="friends-title">🐾 Garden Friends</div>
+      <div id="friends-row" role="list"></div>
+    </div>
+  </section>
+
+  <!-- Decor Page -->
+  <section id="page-decor" class="page" aria-label="Decorations">
+    <div id="decor-section">
+      <div id="decor-title">🏡 Garden Décor</div>
+      <div id="decor-grid"></div>
+    </div>
+  </section>
+
+  <!-- Profile Page -->
+  <section id="page-profile" class="page" aria-label="Profile">
+    <div style="background:var(--panel-bg);border:2px solid var(--pink-light);border-radius:24px;padding:24px;box-shadow:0 4px 16px var(--shadow);">
+      <div style="text-align:center;margin-bottom:16px;">
+        <svg width="90" height="90" viewBox="0 0 120 130" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="60" cy="52" r="30" fill="#FFD6E8"/>
+          <ellipse cx="42" cy="22" rx="8" ry="20" fill="#FFB8C8" transform="rotate(-10,42,22)"/>
+          <ellipse cx="42" cy="22" rx="4" ry="14" fill="#FF88B8" transform="rotate(-10,42,22)"/>
+          <ellipse cx="78" cy="22" rx="8" ry="20" fill="#FFB8C8" transform="rotate(10,78,22)"/>
+          <ellipse cx="78" cy="22" rx="4" ry="14" fill="#FF88B8" transform="rotate(10,78,22)"/>
+          <circle cx="50" cy="52" r="5" fill="white"/><circle cx="70" cy="52" r="5" fill="white"/>
+          <circle cx="51" cy="52" r="2.8" fill="#4A2060"/><circle cx="71" cy="52" r="2.8" fill="#4A2060"/>
+          <ellipse cx="44" cy="57" rx="6" ry="3.5" fill="#FF9EC4" opacity="0.6"/>
+          <ellipse cx="76" cy="57" rx="6" ry="3.5" fill="#FF9EC4" opacity="0.6"/>
+          <ellipse cx="60" cy="59" rx="3" ry="2" fill="#FF78A8"/>
+          <path d="M56 63 Q60 66 64 63" stroke="#CC5888" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+        </svg>
+        <div style="font-family:'Bubblegum Sans',cursive;font-size:1.5rem;color:var(--pink-deep);margin-top:4px;" id="profile-name">Miso</div>
+        <div style="font-size:0.75rem;color:var(--text-light);font-weight:700;">Cozy Gardener 🌸</div>
+      </div>
+      <div class="xp-bar-wrap"><div class="xp-bar-fill" id="xp-bar" style="width:20%"></div></div>
+      <div style="font-size:0.7rem;color:var(--text-light);text-align:center;margin-bottom:16px;font-weight:600;" id="xp-label">XP: 20 / 100</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <div class="stat-chip" style="justify-content:center;padding:12px;">
+          <div style="text-align:center;"><div style="font-size:1.4rem;">🪙</div><div style="font-size:0.7rem;color:var(--text-light);">Coins</div><div style="font-size:1.1rem;font-weight:900;" id="p-coins">120</div></div>
+        </div>
+        <div class="stat-chip" style="justify-content:center;padding:12px;">
+          <div style="text-align:center;"><div style="font-size:1.4rem;">🌸</div><div style="font-size:0.7rem;color:var(--text-light);">Blooms</div><div style="font-size:1.1rem;font-weight:900;" id="p-blooms">0</div></div>
+        </div>
+        <div class="stat-chip" style="justify-content:center;padding:12px;">
+          <div style="text-align:center;"><div style="font-size:1.4rem;">🧺</div><div style="font-size:0.7rem;color:var(--text-light);">Harvests</div><div style="font-size:1.1rem;font-weight:900;" id="p-harvests">0</div></div>
+        </div>
+        <div class="stat-chip" style="justify-content:center;padding:12px;">
+          <div style="text-align:center;"><div style="font-size:1.4rem;">🏡</div><div style="font-size:0.7rem;color:var(--text-light);">Décor</div><div style="font-size:1.1rem;font-weight:900;" id="p-decors">0</div></div>
+        </div>
+      </div>
+      <div style="margin-top:16px;text-align:center;">
+        <button onclick="resetGame()" style="background:#FFE8F0;border:2px solid var(--pink-light);border-radius:14px;padding:8px 20px;font-family:'Nunito',sans-serif;font-size:0.75rem;font-weight:800;color:var(--pink-deep);cursor:pointer;">🔄 New Garden</button>
+      </div>
+    </div>
+  </section>
+
+</div><!-- /game-root -->
+
+<!-- Bottom Nav -->
+<nav id="bottom-nav" aria-label="Game navigation">
+  <button class="nav-btn active" data-page="garden" onclick="switchPage('garden',this)">
+    <span class="nav-icon">🌿</span>Garden
+  </button>
+  <button class="nav-btn" data-page="friends" onclick="switchPage('friends',this)">
+    <span class="nav-icon">🐾</span>Friends
+  </button>
+  <button class="nav-btn" data-page="decor" onclick="switchPage('decor',this)">
+    <span class="nav-icon">🏡</span>Décor
+  </button>
+  <button class="nav-btn" data-page="profile" onclick="switchPage('profile',this)">
+    <span class="nav-icon">⭐</span>Profile
+  </button>
+</nav>
+
+<script>
+// ====================================================
+// GAME DATA
+// ====================================================
+const SEEDS = [
+  { id:'rose',    name:'Rose',      emoji:'🌹', cost:15, growTime:8000,  reward:35,  xp:12, season:'spring' },
+  { id:'sunflower',name:'Sunflower',emoji:'🌻', cost:18, growTime:10000, reward:40,  xp:14, season:'summer' },
+  { id:'tulip',   name:'Tulip',     emoji:'🌷', cost:12, growTime:6000,  reward:28,  xp:10, season:'spring' },
+  { id:'mushroom',name:'Mushroom',  emoji:'🍄', cost:20, growTime:12000, reward:50,  xp:18, season:'autumn' },
+  { id:'blueberry',name:'Blueberry',emoji:'🫐', cost:22, growTime:14000, reward:55,  xp:20, season:'summer' },
+  { id:'snowdrop', name:'Snowdrop', emoji:'❄️', cost:25, growTime:16000, reward:65,  xp:24, season:'winter' },
+];
+
+const FRIENDS = [
+  { id:'coco',   name:'Coco',   role:'Bunny Baker',  hearts:3, svgFn: 'bunny' },
+  { id:'ribby',  name:'Ribby',  role:'Frog Chef',    hearts:2, svgFn: 'frog'  },
+  { id:'maple',  name:'Maple',  role:'Bear Explorer',hearts:4, svgFn: 'bear'  },
+  { id:'mochi',  name:'Mochi',  role:'Cat Artist',   hearts:1, svgFn: 'cat'   },
+];
+
+const DECORS = [
+  { id:'bench',     name:'Garden Bench',  emoji:'🪑', cost:80  },
+  { id:'lantern',   name:'Lantern',       emoji:'🏮', cost:60  },
+  { id:'birdhouse', name:'Birdhouse',     emoji:'🐦', cost:100 },
+  { id:'fountain',  name:'Fountain',      emoji:'⛲', cost:150 },
+  { id:'windmill',  name:'Windmill',      emoji:'🎡', cost:200 },
+  { id:'picnic',    name:'Picnic Mat',    emoji:'🧺', cost:90  },
+];
+
+const SEASONS = ['spring','summer','autumn','winter'];
+const SEASON_LABELS = { spring:'✿ Spring ✿', summer:'☀ Summer ☀', autumn:'🍂 Autumn 🍂', winter:'❄ Winter ❄' };
+const SEASON_CSS    = { spring:'season-spring', summer:'season-summer', autumn:'season-autumn', winter:'season-winter' };
+
+const PLOT_COUNT = 12;
+const UNLOCK_COSTS = [0,0,0,0, 50,50,80,80, 120,120,150,150];
+
+const MESSAGES = [
+  'Tap a plot to plant seeds! 🌱',
+  'Water your plants every day~ 💧',
+  'Harvest when they glow green! 🌿',
+  'Visit friends for bonus coins! 🐾',
+  'Decorate your garden! 🏡',
+  'Every bloom makes me happy! 🌸',
+  'Keep growing, little gardener! ✨',
+];
+
+// ====================================================
+// GAME STATE
+// ====================================================
+let state = load() || {
+  coins: 120,
+  level: 1,
+  xp: 20,
+  water: 5,
+  blooms: 0,
+  harvests: 0,
+  decorsOwned: [],
+  season: 0,
+  dayCount: 0,
+  plots: Array.from({length:PLOT_COUNT}, (_,i) => ({
+    id: i,
+    state: i<4 ? 'empty' : 'locked',
+    seed: null,
+    planted: null,
+    watered: false,
+    growDur: 0,
+  })),
+  selectedSeed: 'rose',
+  selectedTool: 'plant',
+};
+
+function save() { try { localStorage.setItem('misoGarden_v2', JSON.stringify(state)); } catch(e){} }
+function load() { try { return JSON.parse(localStorage.getItem('misoGarden_v2') || 'null'); } catch(e){ return null; } }
+function resetGame() {
+  if (!confirm('Start a new garden? 🌱')) return;
+  localStorage.removeItem('misoGarden_v2');
+  location.reload();
+}
+
+// ====================================================
+// SKY + CLOUDS
+// ====================================================
+function buildSky() {
+  const sky = document.getElementById('sky-bg');
+  for (let i=0; i<5; i++) {
+    const c = document.createElement('div');
+    c.className = 'cloud';
+    const w = 60+Math.random()*120, h = 28+Math.random()*24;
+    Object.assign(c.style, {
+      width: w+'px', height: h+'px',
+      top: (8+Math.random()*35)+'%',
+      animationDuration: (28+Math.random()*40)+'s',
+      animationDelay: (-Math.random()*30)+'s',
+      opacity: 0.55+Math.random()*0.35,
+    });
+    sky.appendChild(c);
+  }
+  for (let i=0; i<14; i++) {
+    const s = document.createElement('div');
+    s.className = 'sparkle';
+    Object.assign(s.style, {
+      left: Math.random()*100+'%', top: Math.random()*60+'%',
+      animationDelay: (-Math.random()*2)+'s',
+      animationDuration: (1.5+Math.random()*1.5)+'s',
+      width: (4+Math.random()*8)+'px', height: (4+Math.random()*8)+'px',
+    });
+    sky.appendChild(s);
+  }
+}
+
+// ====================================================
+// SEASON
+// ====================================================
+function updateSeason() {
+  const s = SEASONS[state.season % 4];
+  const el = document.getElementById('season-banner');
+  el.textContent = SEASON_LABELS[s];
+  el.className = 'season-banner ' + SEASON_CSS[s];
+  // Sky gradient changes by season
+  const sky = document.getElementById('sky-bg');
+  const grads = {
+    spring: 'linear-gradient(180deg,#D8EEFF 0%,#FFE0F0 55%,#FFEEDD 100%)',
+    summer: 'linear-gradient(180deg,#B8DFFF 0%,#E0F8FF 55%,#FFFACC 100%)',
+    autumn: 'linear-gradient(180deg,#FFE0B8 0%,#FFD0C0 55%,#FFF0CC 100%)',
+    winter: 'linear-gradient(180deg,#D0E8FF 0%,#E8F0FF 55%,#F8F0FF 100%)',
+  };
+  sky.style.background = grads[s];
+}
+
+// ====================================================
+// TOAST
+// ====================================================
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2600);
+}
+
+// ====================================================
+// CONFETTI
+// ====================================================
+function launchConfetti() {
+  const colors = ['#FF9EC4','#FFE878','#B8F0DC','#DDD0FF','#FFB8A0','#78CC78'];
+  for (let i=0; i<22; i++) {
+    const p = document.createElement('div');
+    p.className = 'confetti-piece';
+    const size = 6+Math.random()*10;
+    Object.assign(p.style, {
+      left: Math.random()*100+'vw',
+      width: size+'px', height: size+'px',
+      background: colors[Math.floor(Math.random()*colors.length)],
+      animationDuration: (1.2+Math.random()*1.5)+'s',
+      animationDelay: (Math.random()*0.5)+'s',
+    });
+    document.body.appendChild(p);
+    setTimeout(() => p.remove(), 2800);
+  }
+}
+
+// ====================================================
+// FLY COIN
+// ====================================================
+function flyCoin(x, y) {
+  const c = document.createElement('div');
+  c.className = 'fly-coin';
+  c.textContent = '🪙';
+  Object.assign(c.style, { left: x+'px', top: y+'px' });
+  document.body.appendChild(c);
+  setTimeout(() => c.remove(), 1400);
+}
+
+// ====================================================
+// HARVEST POPUP
+// ====================================================
+function showHarvestPopup(seed, coins) {
+  const popup = document.getElementById('harvest-popup');
+  document.getElementById('harvest-emoji').textContent = seed.emoji;
+  document.getElementById('harvest-title').textContent = `${seed.name} Harvested!`;
+  document.getElementById('harvest-desc').textContent = `+${coins} coins  ·  +${seed.xp} XP  ·  +1 bloom 🌸`;
+  popup.classList.add('show');
+  launchConfetti();
+}
+document.getElementById('harvest-close-btn').addEventListener('click', () => {
+  document.getElementById('harvest-popup').classList.remove('show');
+});
+
+// ====================================================
+// STATS DISPLAY
+// ====================================================
+function updateStats() {
+  document.getElementById('stat-coins').textContent = state.coins;
+  document.getElementById('stat-level').textContent = state.level;
+  document.getElementById('stat-water').textContent = state.water;
+  document.getElementById('stat-blooms').textContent = state.blooms;
+  document.getElementById('p-coins').textContent = state.coins;
+  document.getElementById('p-blooms').textContent = state.blooms;
+  document.getElementById('p-harvests').textContent = state.harvests;
+  document.getElementById('p-decors').textContent = state.decorsOwned.length;
+  const xpNeeded = state.level * 100;
+  const pct = Math.min(100, Math.round((state.xp / xpNeeded)*100));
+  document.getElementById('xp-bar').style.width = pct+'%';
+  document.getElementById('xp-label').textContent = `XP: ${state.xp} / ${xpNeeded}`;
+  save();
+}
+
+function addXP(amount) {
+  state.xp += amount;
+  const needed = state.level * 100;
+  if (state.xp >= needed) {
+    state.xp -= needed;
+    state.level++;
+    state.water = Math.min(state.water + 3, 20);
+    showToast(`⭐ Level up! You're now Lv ${state.level}!`);
+    launchConfetti();
+    // Unlock more plots
+    unlockPlotCheck();
+  }
+  updateStats();
+}
+
+function unlockPlotCheck() {
+  // Auto-unlock plots based on level
+  state.plots.forEach((plot, i) => {
+    if (plot.state === 'locked') {
+      const unlockLv = i < 8 ? 2 : 4;
+      if (state.level >= unlockLv) {
+        plot.state = 'empty';
+      }
+    }
+  });
+}
+
+// ====================================================
+// GARDEN GRID
+// ====================================================
+function buildGarden() {
+  const grid = document.getElementById('garden-grid');
+  grid.innerHTML = '';
+  state.plots.forEach((plot, i) => {
+    const div = document.createElement('div');
+    div.className = 'plot' + (plot.state==='locked'?' locked':'') + (plot.state==='ready'?' ready':'') + (plot.watered?' watered':'');
+    div.setAttribute('role','gridcell');
+    div.setAttribute('aria-label', getPlotAriaLabel(plot, i));
+    div.dataset.idx = i;
+
+    if (plot.state === 'locked') {
+      const unlockLv = i < 8 ? 2 : 4;
+      div.innerHTML = `<span class="lock-icon">🔒</span><div class="plot-label">Lv${unlockLv}</div>`;
+    } else {
+      const soilDiv = document.createElement('div');
+      soilDiv.className = 'plot-soil-base'; div.appendChild(soilDiv);
+      const grassDiv = document.createElement('div');
+      grassDiv.className = 'plot-grass-top'; div.appendChild(grassDiv);
+
+      const icon = document.createElement('div');
+      icon.className = 'plot-state-icon';
+      icon.textContent = getPlotEmoji(plot);
+      div.appendChild(icon);
+
+      if (plot.watered && plot.state==='growing') {
+        const drop = document.createElement('div');
+        drop.className='watered-drop'; drop.textContent='💧';
+        div.appendChild(drop);
+      }
+
+      if (plot.state !== 'empty') {
+        const seed = SEEDS.find(s=>s.id===plot.seed);
+        const lbl = document.createElement('div');
+        lbl.className = 'plot-label';
+        lbl.textContent = seed ? seed.name : '';
+        div.appendChild(lbl);
+      }
+    }
+
+    div.addEventListener('click', () => onPlotClick(i, div));
+    grid.appendChild(div);
+  });
+}
+
+function getPlotEmoji(plot) {
+  if (plot.state==='empty') return '🟫';
+  if (plot.state==='ready') return SEEDS.find(s=>s.id===plot.seed)?.emoji || '🌿';
+  if (plot.state==='growing') {
+    const seed = SEEDS.find(s=>s.id===plot.seed);
+    const elapsed = Date.now() - plot.planted;
+    const pct = elapsed / plot.growDur;
+    if (pct < 0.33) return '🌱';
+    if (pct < 0.66) return '🌿';
+    return seed?.emoji || '🌿';
+  }
+  return '🟫';
+}
+
+function getPlotAriaLabel(plot, i) {
+  if (plot.state==='locked') return `Plot ${i+1}: locked`;
+  if (plot.state==='empty') return `Plot ${i+1}: empty`;
+  if (plot.state==='growing') return `Plot ${i+1}: growing ${plot.seed}`;
+  if (plot.state==='ready') return `Plot ${i+1}: ${plot.seed} ready to harvest`;
+  return `Plot ${i+1}`;
+}
+
+function onPlotClick(idx, el) {
+  const plot = state.plots[idx];
+  if (plot.state === 'locked') {
+    showToast('🔒 Level up to unlock this plot!'); return;
+  }
+
+  const tool = state.selectedTool;
+
+  if (tool==='plant') {
+    if (plot.state !== 'empty') { showToast('❌ Already has something here!'); return; }
+    const seed = SEEDS.find(s=>s.id===state.selectedSeed);
+    if (!seed) return;
+    if (state.coins < seed.cost) { showToast(`💸 Need ${seed.cost} coins!`); return; }
+    state.coins -= seed.cost;
+    plot.state = 'growing';
+    plot.seed = seed.id;
+    plot.planted = Date.now();
+    plot.growDur = seed.growTime;
+    plot.watered = false;
+    showToast(`🌱 Planted ${seed.name}!`);
+    buildGarden();
+    updateStats();
+    sayRandom();
+  } else if (tool==='water') {
+    if (plot.state !== 'growing') { showToast('💧 Nothing to water here!'); return; }
+    if (plot.watered) { showToast('✅ Already watered!'); return; }
+    if (state.water <= 0) { showToast('💧 Out of water! Wait or level up.'); return; }
+    state.water--;
+    plot.watered = true;
+    plot.growDur = Math.round(plot.growDur * 0.7); // watering speeds up growth 30%
+    showToast('💧 Watered! Growing faster~');
+    buildGarden();
+    updateStats();
+  } else if (tool==='harvest') {
+    if (plot.state !== 'ready') {
+      showToast('🌿 Not ready yet!'); return;
+    }
+    const seed = SEEDS.find(s=>s.id===plot.seed);
+    const bonus = plot.watered ? 1.3 : 1;
+    const earned = Math.round((seed?.reward || 20) * bonus);
+    state.coins += earned;
+    state.blooms++;
+    state.harvests++;
+    addXP(seed?.xp || 10);
+    const rect = el.getBoundingClientRect();
+    flyCoin(rect.left + rect.width/2, rect.top);
+    showHarvestPopup(seed, earned);
+    plot.state = 'empty';
+    plot.seed = null; plot.planted = null; plot.watered = false; plot.growDur = 0;
+    buildGarden();
+    updateStats();
+  } else if (tool==='remove') {
+    if (plot.state==='empty') { showToast('Nothing to remove!'); return; }
+    plot.state='empty'; plot.seed=null; plot.planted=null; plot.watered=false; plot.growDur=0;
+    showToast('✂️ Removed!');
+    buildGarden();
+    updateStats();
+  }
+}
+
+// ====================================================
+// GROW TIMER
+// ====================================================
+function tickGrowth() {
+  let changed = false;
+  state.plots.forEach(plot => {
+    if (plot.state==='growing') {
+      if (Date.now() - plot.planted >= plot.growDur) {
+        plot.state = 'ready';
+        changed = true;
+        const seed = SEEDS.find(s=>s.id===plot.seed);
+        showToast(`🌸 Your ${seed?.name || 'plant'} is ready!`);
+      }
+    }
+  });
+  if (changed) { buildGarden(); save(); }
+}
+setInterval(tickGrowth, 1500);
+
+// ====================================================
+// TOOL SELECTION
+// ====================================================
+document.querySelectorAll('.tool-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tool-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    state.selectedTool = btn.dataset.tool;
+    const msgs = {
+      plant:'Choose a seed & tap a plot! 🌱',
+      water:'Tap a growing plant to water it! 💧',
+      harvest:'Tap a glowing plant to harvest! 🧺',
+      remove:'Tap any plant to remove it ✂️',
+    };
+    setSpeech(msgs[btn.dataset.tool] || '');
+  });
+});
+
+// ====================================================
+// SEED SHOP
+// ====================================================
+function buildSeedShop() {
+  const grid = document.getElementById('seeds-grid');
+  grid.innerHTML = '';
+  SEEDS.forEach(seed => {
+    const card = document.createElement('div');
+    card.className = 'seed-card' + (state.selectedSeed===seed.id?' selected-seed':'');
+    card.setAttribute('role','button');
+    card.setAttribute('aria-pressed', state.selectedSeed===seed.id);
+    card.setAttribute('aria-label',`Select ${seed.name} seed, costs ${seed.cost} coins`);
+    card.innerHTML = `
+      <span class="seed-emoji">${seed.emoji}</span>
+      <div class="seed-info">
+        <div class="seed-name">${seed.name}</div>
+        <div class="seed-cost">🪙 ${seed.cost} coins → 🪙 ${seed.reward}</div>
+        <div class="seed-time">⏱ ${seed.growTime/1000}s grow time</div>
+      </div>`;
+    card.addEventListener('click', () => {
+      state.selectedSeed = seed.id;
+      state.selectedTool = 'plant';
+      document.querySelectorAll('.tool-btn').forEach(b=>b.classList.remove('active'));
+      document.getElementById('tool-plant').classList.add('active');
+      buildSeedShop();
+      setSpeech(`${seed.emoji} ${seed.name} selected! Tap a plot!`);
+    });
+    grid.appendChild(card);
+  });
+}
+
+// ====================================================
+// FRIENDS
+// ====================================================
+function buildFriends() {
+  const row = document.getElementById('friends-row');
+  row.innerHTML = '';
+  FRIENDS.forEach(f => {
+    const card = document.createElement('div');
+    card.className = 'friend-card';
+    card.setAttribute('role','listitem');
+    card.setAttribute('aria-label',f.name+', '+f.role);
+    card.innerHTML = `
+      ${friendSVG(f.svgFn)}
+      <div class="friend-name">${f.name}</div>
+      <div class="friend-status">${f.role}</div>
+      <div class="friend-hearts">${'💗'.repeat(f.hearts)}</div>`;
+    card.addEventListener('click', () => visitFriend(f));
+    row.appendChild(card);
+  });
+}
+
+function visitFriend(f) {
+  const bonus = 15 + Math.floor(Math.random()*20);
+  state.coins += bonus;
+  state.water = Math.min(state.water+1, 20);
+  showToast(`🐾 ${f.name} gave you ${bonus} coins + 1 💧`);
+  addXP(5);
+  updateStats();
+  setSpeech(`Thanks ${f.name}! 🌸`);
+}
+
+function friendSVG(type) {
+  const svgs = {
+    bunny:`<svg class="friend-svg" viewBox="0 0 52 52" xmlns="http://www.w3.org/2000/svg">
+      <ellipse cx="26" cy="46" rx="14" ry="5" fill="rgba(200,140,180,0.2)"/>
+      <rect x="14" y="30" width="24" height="20" rx="10" fill="#FFB8C8"/>
+      <circle cx="26" cy="24" r="12" fill="#FFD6E8"/>
+      <ellipse cx="19" cy="12" rx="4" ry="10" fill="#FFB8C8" transform="rotate(-8,19,12)"/>
+      <ellipse cx="19" cy="12" rx="2" ry="7" fill="#FF88B8" transform="rotate(-8,19,12)"/>
+      <ellipse cx="33" cy="12" rx="4" ry="10" fill="#FFB8C8" transform="rotate(8,33,12)"/>
+      <ellipse cx="33" cy="12" rx="2" ry="7" fill="#FF88B8" transform="rotate(8,33,12)"/>
+      <circle cx="22" cy="23" r="3" fill="white"/><circle cx="30" cy="23" r="3" fill="white"/>
+      <circle cx="22" cy="23" r="1.5" fill="#4A2060"/><circle cx="30" cy="23" r="1.5" fill="#4A2060"/>
+      <ellipse cx="20" cy="26" rx="3" ry="2" fill="#FF9EC4" opacity="0.6"/>
+      <ellipse cx="32" cy="26" rx="3" ry="2" fill="#FF9EC4" opacity="0.6"/>
+      <ellipse cx="26" cy="28" rx="2" ry="1.2" fill="#FF78A8"/>
+      <circle cx="36" cy="42" r="5" fill="white"/>
+    </svg>`,
+    frog:`<svg class="friend-svg" viewBox="0 0 52 52" xmlns="http://www.w3.org/2000/svg">
+      <ellipse cx="26" cy="46" rx="14" ry="5" fill="rgba(80,160,80,0.2)"/>
+      <rect x="14" y="30" width="24" height="20" rx="10" fill="#6EBB6E"/>
+      <circle cx="26" cy="24" r="12" fill="#6EBB6E"/>
+      <circle cx="18" cy="14" r="5" fill="#88DD88"/>
+      <circle cx="34" cy="14" r="5" fill="#88DD88"/>
+      <ellipse cx="26" cy="30" rx="8" ry="5" fill="#B8F8B8"/>
+      <circle cx="18" cy="22" r="3" fill="white"/><circle cx="34" cy="22" r="3" fill="white"/>
+      <circle cx="18" cy="22" r="1.5" fill="#224422"/><circle cx="34" cy="22" r="1.5" fill="#224422"/>
+      <path d="M23 28 Q26 30 29 28" stroke="#336633" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+      <ellipse cx="26" cy="8" rx="10" ry="3" fill="#E84848"/>
+      <rect x="20" y="5" width="12" height="5" rx="2.5" fill="#E84848"/>
+    </svg>`,
+    bear:`<svg class="friend-svg" viewBox="0 0 52 52" xmlns="http://www.w3.org/2000/svg">
+      <ellipse cx="26" cy="46" rx="14" ry="5" fill="rgba(180,130,80,0.2)"/>
+      <rect x="14" y="30" width="24" height="20" rx="10" fill="#D4904A"/>
+      <circle cx="26" cy="24" r="12" fill="#E0A860"/>
+      <circle cx="16" cy="14" r="5" fill="#D4904A"/>
+      <circle cx="36" cy="14" r="5" fill="#D4904A"/>
+      <ellipse cx="26" cy="30" rx="7" ry="5" fill="#F0C888"/>
+      <circle cx="22" cy="22" r="3" fill="white"/><circle cx="30" cy="22" r="3" fill="white"/>
+      <circle cx="22" cy="22" r="1.5" fill="#3A2010"/><circle cx="30" cy="22" r="1.5" fill="#3A2010"/>
+      <ellipse cx="26" cy="28" rx="3" ry="2" fill="#8A5020"/>
+      <path d="M23 30 Q26 32 29 30" stroke="#8A5020" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+      <!-- Explorer hat -->
+      <ellipse cx="26" cy="12" rx="13" ry="3.5" fill="#C8900A"/>
+      <rect x="18" y="8" width="16" height="6" rx="3" fill="#C8900A"/>
+    </svg>`,
+    cat:`<svg class="friend-svg" viewBox="0 0 52 52" xmlns="http://www.w3.org/2000/svg">
+      <ellipse cx="26" cy="46" rx="14" ry="5" fill="rgba(150,150,200,0.2)"/>
+      <rect x="14" y="30" width="24" height="20" rx="10" fill="#C8C0E8"/>
+      <circle cx="26" cy="24" r="12" fill="#D8D0F0"/>
+      <polygon points="16,16 12,6 20,10" fill="#C8C0E8"/>
+      <polygon points="36,16 40,6 32,10" fill="#C8C0E8"/>
+      <polygon points="16,14 13,8 20,11" fill="#FF88B8"/>
+      <polygon points="36,14 39,8 32,11" fill="#FF88B8"/>
+      <circle cx="22" cy="24" r="3" fill="white"/><circle cx="30" cy="24" r="3" fill="white"/>
+      <circle cx="22" cy="24" r="1.5" fill="#4A3080"/><circle cx="30" cy="24" r="1.5" fill="#4A3080"/>
+      <ellipse cx="26" cy="29" rx="2" ry="1.2" fill="#FF78A8"/>
+      <path d="M23 31 Q26 33 29 31" stroke="#9878C0" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+      <!-- Whiskers -->
+      <line x1="14" y1="28" x2="22" y2="29" stroke="#9878C0" stroke-width="0.7" opacity="0.6"/>
+      <line x1="30" y1="29" x2="38" y2="28" stroke="#9878C0" stroke-width="0.7" opacity="0.6"/>
+    </svg>`,
+  };
+  return svgs[type] || svgs.bunny;
+}
+
+// ====================================================
+// DECORATIONS
+// ====================================================
+function buildDecor() {
+  const grid = document.getElementById('decor-grid');
+  grid.innerHTML = '';
+  DECORS.forEach(d => {
+    const item = document.createElement('div');
+    const owned = state.decorsOwned.includes(d.id);
+    item.className = 'decor-item' + (owned?' owned':'');
+    item.innerHTML = `<div class="decor-emoji">${d.emoji}</div><div class="decor-name">${d.name}</div><div class="decor-cost">${owned?'✅ Owned':'🪙 '+d.cost}</div>`;
+    item.setAttribute('aria-label', d.name + (owned?' (owned)':`, costs ${d.cost} coins`));
+    item.addEventListener('click', () => buyDecor(d));
+    grid.appendChild(item);
+  });
+}
+
+function buyDecor(d) {
+  if (state.decorsOwned.includes(d.id)) { showToast('🏡 Already placed!'); return; }
+  if (state.coins < d.cost) { showToast(`💸 Need ${d.cost} coins!`); return; }
+  state.coins -= d.cost;
+  state.decorsOwned.push(d.id);
+  addXP(15);
+  showToast(`🏡 ${d.name} placed in your garden!`);
+  buildDecor();
+  updateStats();
+}
+
+// ====================================================
+// SPEECH
+// ====================================================
+function setSpeech(msg) {
+  document.getElementById('speech-bubble').textContent = msg;
+}
+function sayRandom() {
+  setSpeech(MESSAGES[Math.floor(Math.random()*MESSAGES.length)]);
+}
+
+// tap character
+document.getElementById('char-svg').addEventListener('click', () => {
+  sayRandom();
+  const el = document.getElementById('char-svg');
+  el.style.transform = 'scale(1.15) rotate(-5deg)';
+  setTimeout(() => el.style.transform = '', 300);
+});
+
+// ====================================================
+// VISITOR
+// ====================================================
+let visitorDismissed = false;
+function checkVisitor() {
+  if (visitorDismissed) return;
+  if (state.dayCount % 3 === 0 || state.harvests > 0 && !visitorDismissed) {
+    const f = FRIENDS[Math.floor(Math.random()*FRIENDS.length)];
+    document.getElementById('visitor-name').textContent = f.name + ' dropped by!';
+    document.getElementById('visitor-msg').textContent = 'I brought you a little gift~ 🎀';
+    document.getElementById('visitor-banner').classList.add('show');
+  }
+}
+document.getElementById('visitor-claim').addEventListener('click', () => {
+  const seeds = 3 + Math.floor(Math.random()*5);
+  const water = 2 + Math.floor(Math.random()*3);
+  state.water = Math.min(state.water + water, 20);
+  state.coins += seeds * 10;
+  showToast(`🎁 Got ${seeds*10} coins + ${water} 💧!`);
+  document.getElementById('visitor-banner').classList.remove('show');
+  visitorDismissed = true;
+  updateStats();
+});
+
+// ====================================================
+// WATER REFILL
+// ====================================================
+setInterval(() => {
+  if (state.water < 10) {
+    state.water++;
+    updateStats();
+  }
+}, 30000); // refill 1 water every 30s
+
+// ====================================================
+// PAGE NAVIGATION
+// ====================================================
+function switchPage(name, btn) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  btn.classList.add('active');
+  if (name==='friends') buildFriends();
+  if (name==='decor') buildDecor();
+}
+
+// ====================================================
+// DAY CYCLE — advances season every 3 mins of play
+// ====================================================
+setInterval(() => {
+  state.dayCount++;
+  if (state.dayCount % 6 === 0) {
+    state.season = (state.season+1) % 4;
+    const sName = SEASONS[state.season % 4];
+    showToast(`🍃 The season changed to ${sName}!`);
+    updateSeason();
+    checkVisitor();
+  }
+  save();
+}, 30000);
+
+// ====================================================
+// INIT
+// ====================================================
+function init() {
+  buildSky();
+  updateSeason();
+  buildGarden();
+  buildSeedShop();
+  buildFriends();
+  buildDecor();
+  updateStats();
+  checkVisitor();
+  unlockPlotCheck();
+  setTimeout(() => {
+    showToast('🌸 Welcome to Miso Garden!');
+    setSpeech('Good morning! Ready to garden? 🌿');
+  }, 600);
+}
+
+init();
+</script>
+</body>
+</html>
