@@ -1,3 +1,4 @@
+<img width="407" height="777" alt="GARDEN" src="https://github.com/user-attachments/assets/9d850129-4b79-4416-98d5-03a02e48fe3c" />
 # 🌸 Miso Garden
 
 > A cozy browser-based gardening game — plant, water, harvest, and bloom your way through four seasons.
